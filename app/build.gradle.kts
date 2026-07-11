@@ -15,6 +15,15 @@ dependencies {
     implementation("io.javalin:javalin:6.1.3")
     implementation("org.slf4j:slf4j-simple:2.0.9")
 
+    // HikariCP для соединения с БД
+    implementation("com.zaxxer:HikariCP:5.1.0")
+
+    // H2 для разработки
+    implementation("com.h2database:h2:2.2.224")
+
+    // PostgreSQL для продакшена
+    implementation("org.postgresql:postgresql:42.7.3")
+
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
@@ -27,7 +36,6 @@ tasks.test {
     useJUnitPlatform()
 }
 
-// Настройка Shadow плагина
 tasks.shadowJar {
     archiveBaseName.set("app")
     archiveClassifier.set("")
@@ -36,6 +44,3 @@ tasks.shadowJar {
         attributes["Main-Class"] = "hexlet.code.App"
     }
 }
-
-// Убираем проблемную секцию tasks.run
-// Порт будет устанавливаться через переменную окружения в App.java
