@@ -33,6 +33,18 @@ import static io.javalin.rendering.template.TemplateUtil.model;
 
 public class UrlsController {
 
+    private static final int MAX_LENGTH = 255;
+
+    private static String truncate(String value) {
+        if (value == null) {
+            return null;
+        }
+        if (value.length() <= MAX_LENGTH) {
+            return value;
+        }
+        return value.substring(0, MAX_LENGTH - 3) + "...";
+    }
+
     public static void index(Context ctx) throws SQLException {
         List<UrlListItem> items = UrlRepository.getAllWithLastChecks();
         System.out.println("=== UrlsController.index() ===");
@@ -54,7 +66,6 @@ public class UrlsController {
 
         System.out.println("URL found: " + url.getName() + " with ID: " + url.getId());
 
-        // Загружаем проверки из БД
         var checks = UrlCheckRepository.findByUrlId(id);
         System.out.println("Loaded " + checks.size() + " checks for URL ID: " + id);
 
@@ -125,7 +136,6 @@ public class UrlsController {
             UrlCheckRepository.save(checkedUrl);
             System.out.println("Check saved successfully with ID: " + checkedUrl.getId());
 
-            // Проверяем, что сохранилось
             var savedChecks = UrlCheckRepository.findByUrlId(id);
             System.out.println("After save, found " + savedChecks.size() + " checks for URL ID: " + id);
 
@@ -166,15 +176,15 @@ public class UrlsController {
             Document doc = Jsoup.parse(body, urlString);
 
             String title = doc.title();
-            urlCheck.setTitle(!title.trim().isEmpty() ? title.trim() : null);
+            urlCheck.setTitle(!title.trim().isEmpty() ? truncate(title.trim()) : null);
             System.out.println("Parsed title: " + urlCheck.getTitle());
 
             Element h1Element = doc.selectFirst("h1");
-            urlCheck.setH1(h1Element != null ? h1Element.text() : null);
+            urlCheck.setH1(h1Element != null ? truncate(h1Element.text()) : null);
             System.out.println("Parsed h1: " + urlCheck.getH1());
 
             Element descriptionMeta = doc.selectFirst("meta[name=description], meta[property=og:description]");
-            urlCheck.setDescription(descriptionMeta != null ? descriptionMeta.attr("content") : null);
+            urlCheck.setDescription(descriptionMeta != null ? truncate(descriptionMeta.attr("content")) : null);
             System.out.println("Parsed description: " + urlCheck.getDescription());
 
         } catch (Exception e) {
