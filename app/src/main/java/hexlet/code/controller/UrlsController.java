@@ -42,15 +42,14 @@ public class UrlsController {
         ctx.render("urls/index.jte", model("page", page));
     }
 
-    // ★ ИСПРАВЛЕННЫЙ МЕТОД show ★
     public static void show(Context ctx) throws SQLException {
         var id = ctx.pathParamAsClass("id", Long.class).get();
         var url = UrlRepository.find(id)
                 .orElseThrow(() -> new NotFoundResponse("Url not found"));
 
-        // Загружаем проверки для этого URL
+        // Загружаем проверки из БД
         var checks = UrlCheckRepository.findByUrlId(id);
-        url.setUrlChecks(checks);  // ← ДОБАВЛЕНО
+        url.setUrlChecks(checks);
 
         var page = new UrlPage(url);
         consumeFlashToPage(ctx, page);
@@ -103,8 +102,12 @@ public class UrlsController {
 
         try {
             UrlCheck checkedUrl = checkUrl(url);
-            url.addUrlCheck(checkedUrl);
+            // Сохраняем проверку в БД
             UrlCheckRepository.save(checkedUrl);
+
+            // Добавляем проверку в объект url для текущего запроса
+            url.addUrlCheck(checkedUrl);
+
             ctx.sessionAttribute("flashType", "success");
             ctx.sessionAttribute("flash", "Страница успешно проверена");
         } catch (UnirestException e) {
