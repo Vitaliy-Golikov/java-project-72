@@ -34,6 +34,7 @@ import static io.javalin.rendering.template.TemplateUtil.model;
 public class UrlsController {
 
     private static final int MAX_LENGTH = 255;
+    private static final int TRUNCATE_LENGTH = MAX_LENGTH - 3; // 252
 
     private static String truncate(String value) {
         if (value == null) {
@@ -42,7 +43,7 @@ public class UrlsController {
         if (value.length() <= MAX_LENGTH) {
             return value;
         }
-        return value.substring(0, MAX_LENGTH - 3) + "...";
+        return value.substring(0, TRUNCATE_LENGTH) + "...";
     }
 
     public static void index(Context ctx) throws SQLException {
@@ -176,16 +177,35 @@ public class UrlsController {
             Document doc = Jsoup.parse(body, urlString);
 
             String title = doc.title();
-            urlCheck.setTitle(!title.trim().isEmpty() ? truncate(title.trim()) : null);
-            System.out.println("Parsed title: " + urlCheck.getTitle());
+            String trimmedTitle = title.trim();
+            String truncatedTitle = truncate(trimmedTitle);
+            System.out.println("Raw title length: " + trimmedTitle.length());
+            System.out.println("Truncated title: " + truncatedTitle);
+            System.out.println("Truncated title length: " + (truncatedTitle != null ? truncatedTitle.length() : 0));
+            System.out.println("Truncated title ends with ...: " + (truncatedTitle != null && truncatedTitle.endsWith("...")));
+            urlCheck.setTitle(!trimmedTitle.isEmpty() ? truncatedTitle : null);
 
             Element h1Element = doc.selectFirst("h1");
-            urlCheck.setH1(h1Element != null ? truncate(h1Element.text()) : null);
-            System.out.println("Parsed h1: " + urlCheck.getH1());
+            if (h1Element != null) {
+                String h1Text = h1Element.text();
+                String truncatedH1 = truncate(h1Text);
+                System.out.println("Raw h1 length: " + h1Text.length());
+                System.out.println("Truncated h1 ends with ...: " + (truncatedH1 != null && truncatedH1.endsWith("...")));
+                urlCheck.setH1(truncatedH1);
+            } else {
+                urlCheck.setH1(null);
+            }
 
             Element descriptionMeta = doc.selectFirst("meta[name=description], meta[property=og:description]");
-            urlCheck.setDescription(descriptionMeta != null ? truncate(descriptionMeta.attr("content")) : null);
-            System.out.println("Parsed description: " + urlCheck.getDescription());
+            if (descriptionMeta != null) {
+                String desc = descriptionMeta.attr("content");
+                String truncatedDesc = truncate(desc);
+                System.out.println("Raw description length: " + desc.length());
+                System.out.println("Truncated description ends with ...: " + (truncatedDesc != null && truncatedDesc.endsWith("...")));
+                urlCheck.setDescription(truncatedDesc);
+            } else {
+                urlCheck.setDescription(null);
+            }
 
         } catch (Exception e) {
             System.err.println("Error parsing URL: " + e.getMessage());
