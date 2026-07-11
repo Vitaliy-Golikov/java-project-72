@@ -38,8 +38,8 @@ content = @`
             <tr>
                 <th class="col-1">ID</th>
                 <th class="col-1">Код ответа</th>
-                <th>title</th>
-                <th>h1</th>
+                <th>h1</th>               <!-- ← Поменяли местами -->
+                <th>title</th>            <!-- ← Теперь title после h1 -->
                 <th>description</th>
                 <th class="col-2">Дата проверки</th>
             </tr>
@@ -50,8 +50,8 @@ content = @`
                     <tr>
                         <td class="col-1">${urlCheck.getId()}</td>
                         <td>${urlCheck.getStatusCode()}</td>
-                        <td>${urlCheck.getTitle() != null ? urlCheck.getTitle() : ""}</td>
                         <td>${urlCheck.getH1() != null ? urlCheck.getH1() : ""}</td>
+                        <td>${urlCheck.getTitle() != null ? urlCheck.getTitle() : ""}</td>
                         <td>${urlCheck.getDescription() != null ? urlCheck.getDescription() : ""}</td>
                         <td class="col-2">${DateUtils.format(urlCheck.getCreatedAt())}</td>
                     </tr>
