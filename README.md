@@ -7,7 +7,7 @@
 
 ## Демо
 
-Приложение доступно по адресу: [https://ваш-проект.onrender.com](https://ваш-проект.onrender.com)
+Приложение доступно по адресу: [https://java-project-72-91dl.onrender.com](https://java-project-72-91dl.onrender.com)
 
 ## Описание
 
@@ -156,17 +156,22 @@ cd app
 ```
 ### Сборка JAR
 
-```cd app
+```bash
+cd app
 ./gradlew build
 ```
+
 ### Docker
 
-```docker build -t page-analyzer .
+```bash
+docker build -t page-analyzer .
 docker run -p 7070:7070 page-analyzer
 ```
+
 ### Тестирование
 
-```cd app
+```bash
+cd app
 ./gradlew test
 ```
 ## Паттерны и практики
