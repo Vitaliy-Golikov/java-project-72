@@ -21,6 +21,12 @@ public class UrlCheckRepository extends BaseRepository {
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
+            System.out.println("Saving check for URL ID: " + urlCheck.getUrl().getId());
+            System.out.println("Status code: " + urlCheck.getStatusCode());
+            System.out.println("Title: " + urlCheck.getTitle());
+            System.out.println("H1: " + urlCheck.getH1());
+            System.out.println("Description: " + urlCheck.getDescription());
+
             stmt.setLong(1, urlCheck.getUrl().getId());
             stmt.setInt(2, urlCheck.getStatusCode());
             stmt.setString(3, urlCheck.getH1());
@@ -30,12 +36,14 @@ public class UrlCheckRepository extends BaseRepository {
             var now = LocalDateTime.now();
             stmt.setTimestamp(6, Timestamp.valueOf(now));
 
-            stmt.executeUpdate();
+            int affectedRows = stmt.executeUpdate();
+            System.out.println("Affected rows: " + affectedRows);
 
             try (var generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     urlCheck.setId(generatedKeys.getLong(1));
                     urlCheck.setCreatedAt(now);
+                    System.out.println("Generated ID: " + urlCheck.getId());
                 } else {
                     throw new SQLException("DB have not returned an id after saving an entity");
                 }
@@ -60,6 +68,7 @@ public class UrlCheckRepository extends BaseRepository {
             while (resultSet.next()) {
                 urlChecks.add(mapRowToUrlCheck(resultSet, urlId));
             }
+            System.out.println("Found " + urlChecks.size() + " checks for URL ID: " + urlId);
             return urlChecks;
         }
     }
@@ -100,6 +109,11 @@ public class UrlCheckRepository extends BaseRepository {
         check.setH1(rs.getString("h1"));
         check.setDescription(rs.getString("description"));
 
+        System.out.println("Mapped check: ID=" + check.getId() +
+                ", Status=" + check.getStatusCode() +
+                ", Title=" + check.getTitle() +
+                ", H1=" + check.getH1());
+
         return check;
     }
 
@@ -110,5 +124,4 @@ public class UrlCheckRepository extends BaseRepository {
             stmt.executeUpdate();
         }
     }
-
 }
