@@ -25,7 +25,6 @@ public class UrlRepository extends BaseRepository {
             var createdAt = LocalDateTime.now();
             stmt.setTimestamp(2, Timestamp.valueOf(createdAt));
 
-
             stmt.executeUpdate();
             var generatedKeys = stmt.getGeneratedKeys();
 
@@ -39,7 +38,7 @@ public class UrlRepository extends BaseRepository {
     }
 
     public static List<Url> getEntities() throws SQLException {
-        var sql = "SELECT * FROM urls ORDER by id ASC";
+        var sql = "SELECT * FROM urls ORDER by id DESC";  // ← ИЗМЕНЕНО: ASC → DESC
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql)) {
             var resultSet = stmt.executeQuery();
