@@ -33,7 +33,7 @@ import static io.javalin.rendering.template.TemplateUtil.model;
 
 public class UrlsController {
 
-    private static final int MAX_LENGTH = 250;
+    private static final int MAX_LENGTH = 200;
     private static final int TRUNCATE_LENGTH = MAX_LENGTH - 3; // 247
 
     private static String truncate(String value) {
