@@ -1,6 +1,7 @@
 plugins {
     id("java")
     id("application")
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "hexlet.code"
@@ -26,12 +27,18 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.jar {
+// Настройка Shadow плагина для создания fat JAR
+tasks.shadowJar {
+    archiveBaseName.set("app")
+    archiveClassifier.set("")
+    archiveVersion.set("")
     manifest {
         attributes["Main-Class"] = "hexlet.code.App"
     }
-    from({
-        configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) }
-    })
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Настройка для запуска через gradle run
+tasks.run {
+    // Порт из переменной окружения
+    environment("PORT", System.getenv("PORT") ?: "7070")
 }

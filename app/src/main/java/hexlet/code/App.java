@@ -21,7 +21,12 @@ public class App {
 
     public static void main(String[] args) {
         Javalin app = getApp();
-        app.start(7070);
-        logger.info("Application started on port 7070");
+
+        // Порт из переменной окружения или 7070 по умолчанию
+        String portStr = System.getenv().getOrDefault("PORT", "7070");
+        int port = Integer.parseInt(portStr);
+
+        app.start(port);
+        logger.info("Application started on port {}", port);
     }
 }
