@@ -7,7 +7,7 @@
 
 ## Демо
 
-Приложение доступно по адресу: [https://ваш-проект.onrender.com](https://ваш-проект.onrender.com)
+Приложение доступно по адресу: [https://java-project-72-91dl.onrender.com](https://java-project-72-91dl.onrender.com)
 
 ## Описание
 
