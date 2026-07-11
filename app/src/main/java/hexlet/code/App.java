@@ -6,35 +6,58 @@ import hexlet.code.repository.BaseRepository;
 import hexlet.code.repository.UrlRepository;
 import hexlet.code.model.Url;
 import io.javalin.Javalin;
+import io.javalin.rendering.template.JavalinJte;
+import gg.jte.ContentType;
+import gg.jte.TemplateEngine;
+import gg.jte.resolve.ResourceCodeResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class App {
     private static final Logger logger = LoggerFactory.getLogger(App.class);
 
+    private static TemplateEngine createTemplateEngine() {
+        ClassLoader classLoader = App.class.getClassLoader();
+        ResourceCodeResolver codeResolver = new ResourceCodeResolver("templates", classLoader);
+        TemplateEngine templateEngine = TemplateEngine.create(codeResolver, ContentType.Html);
+        return templateEngine;
+    }
+
     public static Javalin getApp() {
+        TemplateEngine templateEngine = createTemplateEngine();
+
         Javalin app = Javalin.create(config -> {
             config.bundledPlugins.enableDevLogging();
+            config.fileRenderer(new JavalinJte(templateEngine));
         });
 
         setupDatabase();
 
         app.get("/", ctx -> {
-            ctx.result("Hello World");
+            Map<String, Object> flash = new HashMap<>();
+            flash.put("flash", ctx.consumeSessionAttribute("flash"));
+            flash.put("flashType", ctx.consumeSessionAttribute("flashType"));
+            ctx.render("index.jte", Map.of("flash", flash));
         });
 
         app.get("/urls", ctx -> {
             try {
                 var urls = UrlRepository.findAll();
-                ctx.json(urls);
+                Map<String, Object> flash = new HashMap<>();
+                flash.put("flash", ctx.consumeSessionAttribute("flash"));
+                flash.put("flashType", ctx.consumeSessionAttribute("flashType"));
+                ctx.render("urls/index.jte", Map.of("urls", urls, "flash", flash));
             } catch (SQLException e) {
                 ctx.status(500);
                 ctx.result("Database error");
@@ -43,21 +66,24 @@ public class App {
         });
 
         app.post("/urls", ctx -> {
-            String name = ctx.queryParam("name");
+            String name = ctx.formParam("url");
             if (name == null || name.isEmpty()) {
-                ctx.status(400);
-                ctx.result("URL name is required");
+                ctx.sessionAttribute("flash", "URL не может быть пустым");
+                ctx.sessionAttribute("flashType", "danger");
+                ctx.redirect("/");
                 return;
             }
 
             try {
                 Url url = new Url(name);
                 UrlRepository.save(url);
-                ctx.status(201);
-                ctx.json(url);
+                ctx.sessionAttribute("flash", "Страница успешно добавлена");
+                ctx.sessionAttribute("flashType", "success");
+                ctx.redirect("/urls");
             } catch (SQLException e) {
-                ctx.status(500);
-                ctx.result("Database error");
+                ctx.sessionAttribute("flash", "Ошибка при добавлении URL");
+                ctx.sessionAttribute("flashType", "danger");
+                ctx.redirect("/");
                 logger.error("Error saving URL", e);
             }
         });
@@ -67,7 +93,10 @@ public class App {
             try {
                 var url = UrlRepository.find(id);
                 if (url.isPresent()) {
-                    ctx.json(url.get());
+                    Map<String, Object> flash = new HashMap<>();
+                    flash.put("flash", ctx.consumeSessionAttribute("flash"));
+                    flash.put("flashType", ctx.consumeSessionAttribute("flashType"));
+                    ctx.render("urls/show.jte", Map.of("url", url.get(), "flash", flash));
                 } else {
                     ctx.status(404);
                     ctx.result("URL not found");
@@ -123,7 +152,7 @@ public class App {
                 return null;
             }
             try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(inputStream))) {
+                    new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
                 return reader.lines().collect(Collectors.joining("\n"));
             }
         } catch (Exception e) {

@@ -24,6 +24,10 @@ dependencies {
     // PostgreSQL для продакшена
     implementation("org.postgresql:postgresql:42.7.3")
 
+    // Jte шаблонизатор
+    implementation("gg.jte:jte:3.1.12")
+    implementation("io.javalin:javalin-rendering:6.1.3")
+
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
@@ -34,6 +38,14 @@ application {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+}
+
+tasks.withType<JavaExec> {
+    systemProperty("file.encoding", "UTF-8")
 }
 
 tasks.shadowJar {
