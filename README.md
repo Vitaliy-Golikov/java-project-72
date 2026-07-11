@@ -74,8 +74,9 @@ CREATE TABLE url_checks (
     created_at TIMESTAMP NOT NULL
 );
 ```
-
-```app/
+## Структура проекта
+```text
+app/
 ├── src/main/java/hexlet/code/
 │ ├── App.java # Точка входа
 │ ├── controller/ # Контроллеры
