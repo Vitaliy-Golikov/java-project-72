@@ -33,8 +33,8 @@ import static io.javalin.rendering.template.TemplateUtil.model;
 
 public class UrlsController {
 
-    private static final int MAX_LENGTH = 255;
-    private static final int TRUNCATE_LENGTH = MAX_LENGTH - 3; // 252
+    private static final int MAX_LENGTH = 250;
+    private static final int TRUNCATE_LENGTH = MAX_LENGTH - 3; // 247
 
     private static String truncate(String value) {
         if (value == null) {
@@ -190,9 +190,12 @@ public class UrlsController {
                 String h1Text = h1Element.text();
                 String truncatedH1 = truncate(h1Text);
                 System.out.println("Raw h1 length: " + h1Text.length());
+                System.out.println("Truncated h1: " + truncatedH1);
+                System.out.println("Truncated h1 length: " + (truncatedH1 != null ? truncatedH1.length() : 0));
                 System.out.println("Truncated h1 ends with ...: " + (truncatedH1 != null && truncatedH1.endsWith("...")));
                 urlCheck.setH1(truncatedH1);
             } else {
+                System.out.println("H1 element not found");
                 urlCheck.setH1(null);
             }
 
@@ -201,9 +204,12 @@ public class UrlsController {
                 String desc = descriptionMeta.attr("content");
                 String truncatedDesc = truncate(desc);
                 System.out.println("Raw description length: " + desc.length());
+                System.out.println("Truncated description: " + truncatedDesc);
+                System.out.println("Truncated description length: " + (truncatedDesc != null ? truncatedDesc.length() : 0));
                 System.out.println("Truncated description ends with ...: " + (truncatedDesc != null && truncatedDesc.endsWith("...")));
                 urlCheck.setDescription(truncatedDesc);
             } else {
+                System.out.println("Description meta not found");
                 urlCheck.setDescription(null);
             }
 

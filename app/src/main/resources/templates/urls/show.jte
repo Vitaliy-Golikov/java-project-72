@@ -33,13 +33,31 @@ content = @`
             <button type="submit" class="btn btn-primary">Запустить проверку</button>
         </form>
 
+        <!-- ВРЕМЕННОЕ ЛОГИРОВАНИЕ -->
+        @if(page.getChecks() != null)
+            <p>Checks count: ${page.getChecks().size()}</p>
+            @for(var urlCheck : page.getChecks())
+                <p>Check ID: ${urlCheck.getId()}, Status: ${urlCheck.getStatusCode()}</p>
+                <p>Title: "${urlCheck.getTitle()}"</p>
+                <p>Title length: ${urlCheck.getTitle() != null ? urlCheck.getTitle().length() : 0}</p>
+                <p>Title ends with ...: ${urlCheck.getTitle() != null && urlCheck.getTitle().endsWith("...")}</p>
+                <p>H1: "${urlCheck.getH1()}"</p>
+                <p>H1 length: ${urlCheck.getH1() != null ? urlCheck.getH1().length() : 0}</p>
+                <p>H1 ends with ...: ${urlCheck.getH1() != null && urlCheck.getH1().endsWith("...")}</p>
+                <p>Description: "${urlCheck.getDescription()}"</p>
+                <p>Description length: ${urlCheck.getDescription() != null ? urlCheck.getDescription().length() : 0}</p>
+                <p>Description ends with ...: ${urlCheck.getDescription() != null && urlCheck.getDescription().endsWith("...")}</p>
+            @endfor
+        @endif
+        <!-- КОНЕЦ ВРЕМЕННОГО ЛОГИРОВАНИЯ -->
+
         <table class="table table-bordered table-hover mt-3" data-test="checks">
             <thead>
             <tr>
                 <th class="col-1">ID</th>
                 <th class="col-1">Код ответа</th>
-                <th>h1</th>               <!-- ← Поменяли местами -->
-                <th>title</th>            <!-- ← Теперь title после h1 -->
+                <th>h1</th>
+                <th>title</th>
                 <th>description</th>
                 <th class="col-2">Дата проверки</th>
             </tr>

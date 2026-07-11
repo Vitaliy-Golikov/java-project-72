@@ -14,6 +14,8 @@ import java.util.Optional;
 
 public class UrlCheckRepository extends BaseRepository {
 
+    private static final int MAX_LENGTH = 250;
+
     public static void save(UrlCheck urlCheck) throws SQLException {
         String sql = """
                 INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at)
@@ -123,5 +125,23 @@ public class UrlCheckRepository extends BaseRepository {
              var stmt = conn.prepareStatement(sql)) {
             stmt.executeUpdate();
         }
+    }
+
+    private static String truncate(String value) {
+        if (value == null) {
+            return null;
+        }
+        System.out.println("=== truncate() ===");
+        System.out.println("Input length: " + value.length());
+        System.out.println("Input: " + value);
+        if (value.length() <= MAX_LENGTH) {
+            System.out.println("No truncation needed");
+            return value;
+        }
+        String result = value.substring(0, MAX_LENGTH - 3) + "...";
+        System.out.println("Result length: " + result.length());
+        System.out.println("Result: " + result);
+        System.out.println("Result ends with ...: " + result.endsWith("..."));
+        return result;
     }
 }
