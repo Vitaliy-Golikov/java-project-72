@@ -3,6 +3,8 @@ package hexlet.code;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import hexlet.code.repository.BaseRepository;
+import hexlet.code.repository.UrlRepository;
+import hexlet.code.model.Url;
 import io.javalin.Javalin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +13,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.stream.Collectors;
 
@@ -22,11 +25,58 @@ public class App {
             config.bundledPlugins.enableDevLogging();
         });
 
-        // Инициализация базы данных
         setupDatabase();
 
         app.get("/", ctx -> {
             ctx.result("Hello World");
+        });
+
+        app.get("/urls", ctx -> {
+            try {
+                var urls = UrlRepository.findAll();
+                ctx.json(urls);
+            } catch (SQLException e) {
+                ctx.status(500);
+                ctx.result("Database error");
+                logger.error("Error fetching URLs", e);
+            }
+        });
+
+        app.post("/urls", ctx -> {
+            String name = ctx.queryParam("name");
+            if (name == null || name.isEmpty()) {
+                ctx.status(400);
+                ctx.result("URL name is required");
+                return;
+            }
+
+            try {
+                Url url = new Url(name);
+                UrlRepository.save(url);
+                ctx.status(201);
+                ctx.json(url);
+            } catch (SQLException e) {
+                ctx.status(500);
+                ctx.result("Database error");
+                logger.error("Error saving URL", e);
+            }
+        });
+
+        app.get("/urls/{id}", ctx -> {
+            Long id = Long.parseLong(ctx.pathParam("id"));
+            try {
+                var url = UrlRepository.find(id);
+                if (url.isPresent()) {
+                    ctx.json(url.get());
+                } else {
+                    ctx.status(404);
+                    ctx.result("URL not found");
+                }
+            } catch (SQLException e) {
+                ctx.status(500);
+                ctx.result("Database error");
+                logger.error("Error fetching URL", e);
+            }
         });
 
         return app;
@@ -36,7 +86,6 @@ public class App {
         try {
             HikariConfig config = new HikariConfig();
 
-            // Получаем URL из переменной окружения или используем H2
             String jdbcUrl = System.getenv("JDBC_DATABASE_URL");
             if (jdbcUrl == null || jdbcUrl.isEmpty()) {
                 jdbcUrl = "jdbc:h2:mem:project;DB_CLOSE_DELAY=-1";
@@ -52,7 +101,6 @@ public class App {
             HikariDataSource dataSource = new HikariDataSource(config);
             BaseRepository.dataSource = dataSource;
 
-            // Инициализация схемы
             try (Connection conn = dataSource.getConnection();
                  Statement stmt = conn.createStatement()) {
                 String schema = readSchemaFile();
@@ -86,8 +134,6 @@ public class App {
 
     public static void main(String[] args) {
         Javalin app = getApp();
-
-        // Порт из переменной окружения или 7070 по умолчанию
         String portStr = System.getenv().getOrDefault("PORT", "7070");
         int port = Integer.parseInt(portStr);
 
