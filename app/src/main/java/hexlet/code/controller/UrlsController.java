@@ -136,6 +136,14 @@ public class UrlsController {
                     ", H1=" + checkedUrl.getH1() +
                     ", Description=" + checkedUrl.getDescription());
 
+            // Если статус ответа >= 400, считаем проверку неудачной
+            if (checkedUrl.getStatusCode() >= 400) {
+                ctx.sessionAttribute("flashType", "danger");
+                ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
+                ctx.redirect(NamedRoutes.urlPath(String.valueOf(id)));
+                return;
+            }
+
             UrlCheckRepository.save(checkedUrl);
             System.out.println("Check saved successfully with ID: " + checkedUrl.getId());
 
