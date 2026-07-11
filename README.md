@@ -156,17 +156,22 @@ cd app
 ```
 ### Сборка JAR
 
-```cd app
+```bash
+cd app
 ./gradlew build
 ```
+
 ### Docker
 
-```docker build -t page-analyzer .
+```bash
+docker build -t page-analyzer .
 docker run -p 7070:7070 page-analyzer
 ```
+
 ### Тестирование
 
-```cd app
+```bash
+cd app
 ./gradlew test
 ```
 ## Паттерны и практики
