@@ -4,7 +4,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 plugins {
     id("application")
     id("checkstyle")
-    id("org.sonarqube") version "7.2.2.6593"
+    id ("org.sonarqube") version "7.3.1.8318"
     id("jacoco")
     id("com.github.johnrengelman.shadow") version "8.1.1"
 
@@ -88,7 +88,7 @@ application {
 
 sonar {
     properties {
-        property("sonar.projectKey", "valentin-osadchii_java-project-72")
-        property("sonar.organization", "valentin-osadchii")
+        property("sonar.projectKey", "Vitaliy-Golikov_java-project-72")
+        property("sonar.organization", "vitaliy-golikov")
     }
 }
