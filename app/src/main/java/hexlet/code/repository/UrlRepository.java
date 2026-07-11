@@ -107,19 +107,26 @@ public class UrlRepository extends BaseRepository {
     }
 
     public static List<UrlListItem> getAllWithLastChecks() throws SQLException {
+        System.out.println("=== getAllWithLastChecks() ===");
         List<Url> urls = getEntities();
+        System.out.println("Total URLs: " + urls.size());
 
-        return urls.stream()
+        List<UrlListItem> items = urls.stream()
                 .map(url -> {
                     UrlCheck lastCheck = null;
                     try {
                         lastCheck = UrlCheckRepository.findLatestByUrlId(url.getId())
                                 .orElse(null);
+                        System.out.println("URL: " + url.getName() + " (ID: " + url.getId()
+                                + ") -> LastCheck status: " + (lastCheck != null ? lastCheck.getStatusCode() : "null"));
                     } catch (SQLException e) {
-                        throw new RuntimeException(e);
+                        System.err.println("Error getting last check for URL " + url.getId() + ": " + e.getMessage());
                     }
                     return UrlListItem.fromUrl(url, lastCheck);
                 })
                 .toList();
+
+        System.out.println("Total items created: " + items.size());
+        return items;
     }
 }
