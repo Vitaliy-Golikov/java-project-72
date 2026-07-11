@@ -27,7 +27,7 @@ tasks.test {
     useJUnitPlatform()
 }
 
-// Настройка Shadow плагина для создания fat JAR
+// Настройка Shadow плагина
 tasks.shadowJar {
     archiveBaseName.set("app")
     archiveClassifier.set("")
@@ -37,8 +37,5 @@ tasks.shadowJar {
     }
 }
 
-// Настройка для запуска через gradle run
-tasks.run {
-    // Порт из переменной окружения
-    environment("PORT", System.getenv("PORT") ?: "7070")
-}
+// Убираем проблемную секцию tasks.run
+// Порт будет устанавливаться через переменную окружения в App.java
