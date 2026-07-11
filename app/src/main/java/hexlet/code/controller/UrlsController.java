@@ -49,9 +49,10 @@ public class UrlsController {
 
         // Загружаем проверки из БД
         var checks = UrlCheckRepository.findByUrlId(id);
-        url.setUrlChecks(checks);
 
-        var page = new UrlPage(url);
+        // Создаём страницу с проверками
+        var page = new UrlPage(url, checks);
+
         consumeFlashToPage(ctx, page);
         ctx.render("urls/show.jte", model("page", page));
     }

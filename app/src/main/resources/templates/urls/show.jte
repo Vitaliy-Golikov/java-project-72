@@ -33,7 +33,7 @@ content = @`
             <button type="submit" class="btn btn-primary">Запустить проверку</button>
         </form>
 
-        <table class="table table-bordered table-hover mt-3">
+        <table class="table table-bordered table-hover mt-3" data-test="checks">
             <thead>
             <tr>
                 <th class="col-1">ID</th>
@@ -45,8 +45,8 @@ content = @`
             </tr>
             </thead>
             <tbody>
-            @if(page.getUrl().getUrlChecks() != null && !page.getUrl().getUrlChecks().isEmpty())
-                @for(var urlCheck : page.getUrl().getUrlChecks())
+            @if(page.getChecks() != null && !page.getChecks().isEmpty())
+                @for(var urlCheck : page.getChecks())
                     <tr>
                         <td class="col-1">${urlCheck.getId()}</td>
                         <td>${urlCheck.getStatusCode()}</td>
