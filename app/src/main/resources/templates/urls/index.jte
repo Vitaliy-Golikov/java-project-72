@@ -9,7 +9,7 @@ title = "Сайты",
 page = page,
 content = @`
     <h1>Сайты</h1>
-    <table class="table table-bordered table-hover mt-2">
+    <table class="table table-bordered table-hover mt-2" data-test="urls">
         <thead>
         <tr>
             <th>ID</th>
