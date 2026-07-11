@@ -34,4 +34,6 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          run: ./gradlew build sonar --info
+          cd app
+          chmod +x gradlew
+          ./gradlew sonar --info
