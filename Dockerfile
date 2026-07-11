@@ -3,7 +3,7 @@ WORKDIR /app
 COPY app/ /app/
 RUN ./gradlew build --no-daemon
 
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=build /app/build/libs/*.jar app.jar
 EXPOSE 7070
