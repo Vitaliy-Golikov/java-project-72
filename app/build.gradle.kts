@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("application")  // Требуется по заданию
+    id("application")
 }
 
 group = "hexlet.code"
@@ -11,10 +11,7 @@ repositories {
 }
 
 dependencies {
-    // Javalin - последняя версия, не ниже 5.6
     implementation("io.javalin:javalin:6.1.3")
-
-    // Логгер
     implementation("org.slf4j:slf4j-simple:2.0.9")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
@@ -22,9 +19,19 @@ dependencies {
 }
 
 application {
-    mainClass.set("hexlet.code.App")  // Точка входа
+    mainClass.set("hexlet.code.App")
 }
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "hexlet.code.App"
+    }
+    from({
+        configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) }
+    })
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
