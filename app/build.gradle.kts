@@ -7,7 +7,6 @@ plugins {
     id ("org.sonarqube") version "7.3.1.8318"
     id("jacoco")
     id("com.github.johnrengelman.shadow") version "8.1.1"
-
 }
 
 group = "hexlet.code"
@@ -19,7 +18,6 @@ repositories {
 
 val lombokVersion = "1.18.34"
 
-
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -29,7 +27,6 @@ dependencies {
     testImplementation("com.squareup.okhttp3:mockwebserver:5.3.2")
     testImplementation("com.squareup.okhttp3:okhttp-urlconnection:5.3.2")
     testImplementation("com.squareup.okhttp3:okhttp:5.3.2")
-
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
 
@@ -51,7 +48,6 @@ dependencies {
 
     implementation("com.konghq:unirest-java-core:4.7.4")
     implementation("org.jsoup:jsoup:1.15.3")
-
 }
 
 tasks.check {
@@ -67,18 +63,26 @@ tasks.test {
     testLogging {
         exceptionFormat = TestExceptionFormat.FULL
         events = mutableSetOf(TestLogEvent.FAILED, TestLogEvent.PASSED, TestLogEvent.SKIPPED)
-        // showStackTraces = true
-        // showCauses = true
         showStandardStreams = true
     }
-    finalizedBy(tasks.jacocoTestReport) // Для генерации отчета о покрытии
+    finalizedBy(tasks.jacocoTestReport)
 }
 
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
     reports {
-        xml.required.set(true) // SonarQube требует XML отчет
+        xml.required.set(true)
         html.required.set(true)
+    }
+}
+
+tasks.shadowJar {
+    archiveBaseName.set("app")
+    archiveClassifier.set("")
+    archiveVersion.set("")
+    archiveFileName.set("app.jar")
+    manifest {
+        attributes["Main-Class"] = "hexlet.code.App"
     }
 }
 
