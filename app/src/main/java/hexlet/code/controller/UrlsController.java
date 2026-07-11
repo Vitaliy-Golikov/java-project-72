@@ -34,7 +34,7 @@ import static io.javalin.rendering.template.TemplateUtil.model;
 public class UrlsController {
 
     private static final int MAX_LENGTH = 200;
-    private static final int TRUNCATE_LENGTH = MAX_LENGTH - 3; // 247
+    private static final int TRUNCATE_LENGTH = MAX_LENGTH - 3;
 
     private static String truncate(String value) {
         if (value == null) {
@@ -80,9 +80,10 @@ public class UrlsController {
         System.out.println("Creating URL: " + name);
 
         if (name == null || name.trim().isEmpty()) {
+            ctx.status(422); // 422 Unprocessable Entity
             ctx.sessionAttribute("flashType", "danger");
             ctx.sessionAttribute("flash", "Некорректный URL");
-            ctx.redirect(NamedRoutes.rootPath());
+            RootController.index(ctx);
             return;
         }
 
@@ -91,9 +92,10 @@ public class UrlsController {
             normalizedUrl = normalizeUrl(name);
             System.out.println("Normalized URL: " + normalizedUrl);
         } catch (MalformedURLException | URISyntaxException e) {
+            ctx.status(422); // 422 Unprocessable Entity
             ctx.sessionAttribute("flashType", "danger");
             ctx.sessionAttribute("flash", "Некорректный URL");
-            ctx.redirect(NamedRoutes.rootPath());
+            RootController.index(ctx);
             return;
         }
 
