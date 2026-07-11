@@ -77,20 +77,26 @@ public class UrlsController {
             return;
         }
 
-        if (UrlRepository.findByName(normalizedUrl).isPresent()) {
+        var existingUrl = UrlRepository.findByName(normalizedUrl);
+        if (existingUrl.isPresent()) {
             ctx.sessionAttribute("flashType", "success");
             ctx.sessionAttribute("flash", "Страница уже существует");
-            ctx.redirect(NamedRoutes.urlsPath());
+            // Перенаправляем на страницу существующего URL
+            ctx.redirect(NamedRoutes.urlPath(String.valueOf(existingUrl.get().getId())));
             return;
         }
 
         var url = new Url(normalizedUrl);
         UrlRepository.save(url);
 
+        // Находим только что созданный URL чтобы получить его ID
+        var savedUrl = UrlRepository.findByName(normalizedUrl).get();
+
         ctx.sessionAttribute("flashType", "success");
         ctx.sessionAttribute("flash", "Страница успешно добавлена");
 
-        ctx.redirect(NamedRoutes.urlsPath(), HttpStatus.forStatus(301));
+        // Перенаправляем на страницу нового URL
+        ctx.redirect(NamedRoutes.urlPath(String.valueOf(savedUrl.getId())));
     }
 
     public static void check(Context ctx) throws SQLException {
