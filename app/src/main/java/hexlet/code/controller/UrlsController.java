@@ -42,21 +42,22 @@ public class UrlsController {
         ctx.render("urls/index.jte", model("page", page));
     }
 
-
+    // ★ ИСПРАВЛЕННЫЙ МЕТОД show ★
     public static void show(Context ctx) throws SQLException {
-
         var id = ctx.pathParamAsClass("id", Long.class).get();
         var url = UrlRepository.find(id)
                 .orElseThrow(() -> new NotFoundResponse("Url not found"));
+
+        // Загружаем проверки для этого URL
+        var checks = UrlCheckRepository.findByUrlId(id);
+        url.setUrlChecks(checks);  // ← ДОБАВЛЕНО
+
         var page = new UrlPage(url);
-
         consumeFlashToPage(ctx, page);
-
         ctx.render("urls/show.jte", model("page", page));
     }
 
     public static void create(Context ctx) throws SQLException {
-
         var name = ctx.formParam("url");
 
         if (name == null || name.trim().isEmpty()) {
@@ -67,7 +68,6 @@ public class UrlsController {
         }
 
         String normalizedUrl;
-
         try {
             normalizedUrl = normalizeUrl(name);
         } catch (MalformedURLException | URISyntaxException e) {
@@ -81,7 +81,6 @@ public class UrlsController {
         if (existingUrl.isPresent()) {
             ctx.sessionAttribute("flashType", "success");
             ctx.sessionAttribute("flash", "Страница уже существует");
-            // Перенаправляем на страницу существующего URL
             ctx.redirect(NamedRoutes.urlPath(String.valueOf(existingUrl.get().getId())));
             return;
         }
@@ -89,13 +88,11 @@ public class UrlsController {
         var url = new Url(normalizedUrl);
         UrlRepository.save(url);
 
-        // Находим только что созданный URL чтобы получить его ID
         var savedUrl = UrlRepository.findByName(normalizedUrl).get();
 
         ctx.sessionAttribute("flashType", "success");
         ctx.sessionAttribute("flash", "Страница успешно добавлена");
 
-        // Перенаправляем на страницу нового URL
         ctx.redirect(NamedRoutes.urlPath(String.valueOf(savedUrl.getId())));
     }
 
@@ -122,10 +119,8 @@ public class UrlsController {
     }
 
     private static UrlCheck checkUrl(Url url) throws UnirestException {
-
         UrlCheck urlCheck = new UrlCheck(500, url);
         var urlString = url.getName();
-
 
         HttpResponse<String> response = Unirest.get(urlString)
                 .header("User-Agent", "Mozilla/5.0")
@@ -137,7 +132,6 @@ public class UrlsController {
         if (body == null || body.trim().isEmpty()) {
             return urlCheck;
         }
-
 
         Document doc = Jsoup.parse(body, urlString);
 
@@ -166,7 +160,6 @@ public class UrlsController {
     }
 
     private static String normalizeUrl(String input) throws MalformedURLException, URISyntaxException {
-
         URI uri = new URI(input);
         URL url = uri.toURL();
 
@@ -182,7 +175,5 @@ public class UrlsController {
         }
 
         return normalized.toString();
-
     }
-
 }
