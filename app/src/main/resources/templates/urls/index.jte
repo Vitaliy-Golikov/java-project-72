@@ -1,29 +1,40 @@
-@import java.util.Map
-@import hexlet.code.model.Url
-@param List<Url> urls
-@param Map<String, Object> flash
+@import hexlet.code.dto.urls.UrlsPage
+@import hexlet.code.util.DateUtils
+@import hexlet.code.util.NamedRoutes
 
-@layout(title = "Сайты", flash = flash)
-<h1>Сайты</h1>
+@param UrlsPage page
 
-<table class="table table-bordered table-hover mt-2">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Имя</th>
-        <th>Дата добавления</th>
-    </tr>
-    </thead>
-    <tbody>
-    @for (Url url : urls)
-    <tr>
-        <td>${url.getId()}</td>
-        <td>
-            <a href="/urls/${url.getId()}">${url.getName()}</a>
-        </td>
-        <td>${url.getCreatedAt()}</td>
-    </tr>
-    @end
-    </tbody>
-</table>
-@end
+@template.layout.page(
+title = "Сайты",
+page = page,
+content = @`
+    <h1>Сайты</h1>
+    <table class="table table-bordered table-hover mt-2">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Имя</th>
+            <th>Последняя проверка</th>
+            <th>Код ответа</th>
+        </tr>
+        </thead>
+        <tbody>
+        @if(!page.getItems().isEmpty())
+            @for(var urlListItem : page.getItems())
+                <tr>
+                    <td>${urlListItem.getId()}</td>
+                    <td><a href="${NamedRoutes.urlPath(urlListItem.getId())}">${urlListItem.getName()}</a></td>
+                    @if(urlListItem.getLastCheck() != null)
+                        <td>${DateUtils.format(urlListItem.getLastCheck().getCreatedAt())}</td>
+                        <td>${urlListItem.getLastCheck().getStatusCode()}</td>
+                    @else
+                        <td></td>
+                        <td></td>
+                    @endif
+                </tr>
+            @endfor
+        @endif
+        </tbody>
+    </table>
+`
+)

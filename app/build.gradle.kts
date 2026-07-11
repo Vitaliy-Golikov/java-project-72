@@ -1,7 +1,13 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 plugins {
-    id("java")
     id("application")
+    id("checkstyle")
+    id("org.sonarqube") version "7.2.2.6593"
+    id("jacoco")
     id("com.github.johnrengelman.shadow") version "8.1.1"
+
 }
 
 group = "hexlet.code"
@@ -11,48 +17,78 @@ repositories {
     mavenCentral()
 }
 
+val lombokVersion = "1.18.34"
+
+
 dependencies {
-    implementation("io.javalin:javalin:6.1.3")
-    implementation("org.slf4j:slf4j-simple:2.0.9")
-
-    // HikariCP для соединения с БД
-    implementation("com.zaxxer:HikariCP:5.1.0")
-
-    // H2 для разработки
-    implementation("com.h2database:h2:2.2.224")
-
-    // PostgreSQL для продакшена
-    implementation("org.postgresql:postgresql:42.7.3")
-
-    // Jte шаблонизатор
-    implementation("gg.jte:jte:3.1.12")
-    implementation("io.javalin:javalin-rendering:6.1.3")
-
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("io.javalin:javalin-testtools:6.7.0")
+    testImplementation("org.assertj:assertj-core:3.27.3")
+
+    testImplementation("com.squareup.okhttp3:mockwebserver:5.3.2")
+    testImplementation("com.squareup.okhttp3:okhttp-urlconnection:5.3.2")
+    testImplementation("com.squareup.okhttp3:okhttp:5.3.2")
+
+
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
+
+    implementation("io.javalin:javalin:6.1.3")
+    implementation("org.slf4j:slf4j-simple:2.0.7")
+
+    implementation("gg.jte:jte:3.1.9")
+    implementation("io.javalin:javalin-rendering:6.1.3")
+
+    runtimeOnly("com.h2database:h2:2.2.220")
+    implementation("org.postgresql:postgresql:42.7.7")
+    implementation("com.zaxxer:HikariCP:5.0.1")
+
+    compileOnly("org.projectlombok:lombok:$lombokVersion")
+    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+
+    testCompileOnly("org.projectlombok:lombok:$lombokVersion")
+    testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
+
+    implementation("com.konghq:unirest-java-core:4.7.4")
+    implementation("org.jsoup:jsoup:1.15.3")
+
 }
 
-application {
-    mainClass.set("hexlet.code.App")
+tasks.check {
+    dependsOn(tasks.checkstyleMain, tasks.checkstyleTest)
+}
+
+tasks.build {
+    dependsOn(tasks.check)
 }
 
 tasks.test {
     useJUnitPlatform()
+    testLogging {
+        exceptionFormat = TestExceptionFormat.FULL
+        events = mutableSetOf(TestLogEvent.FAILED, TestLogEvent.PASSED, TestLogEvent.SKIPPED)
+        // showStackTraces = true
+        // showCauses = true
+        showStandardStreams = true
+    }
+    finalizedBy(tasks.jacocoTestReport) // Для генерации отчета о покрытии
 }
 
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true) // SonarQube требует XML отчет
+        html.required.set(true)
+    }
 }
 
-tasks.withType<JavaExec> {
-    systemProperty("file.encoding", "UTF-8")
+application {
+    mainClass = "hexlet.code.App"
 }
 
-tasks.shadowJar {
-    archiveBaseName.set("app")
-    archiveClassifier.set("")
-    archiveVersion.set("")
-    manifest {
-        attributes["Main-Class"] = "hexlet.code.App"
+sonar {
+    properties {
+        property("sonar.projectKey", "valentin-osadchii_java-project-72")
+        property("sonar.organization", "valentin-osadchii")
     }
 }

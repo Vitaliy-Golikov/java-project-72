@@ -1,6 +1,7 @@
-@import java.util.Map
+@import hexlet.code.dto.BasePage
 @param String title
-@param Map<String, Object> flash
+@param BasePage page
+@param gg.jte.Content content
 
 <!DOCTYPE html>
 <html lang="ru">
@@ -19,13 +20,13 @@
 </nav>
 
 <main class="container">
-    @if (flash != null && flash.containsKey("flash"))
-        <div class="alert alert-${flash.getOrDefault("flashType", "info")}" role="alert">
-            ${flash.get("flash")}
+    @if (page != null && page.getFlash() != null && !page.getFlash().isEmpty())
+        <div class="alert alert-${page.getFlashType() != null ? page.getFlashType() : "info"}" role="alert">
+            ${page.getFlash()}
         </div>
     @endif
 
-    ${@content}
+    ${content}
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>

@@ -1,37 +1,40 @@
 package hexlet.code.model;
 
-import java.sql.Timestamp;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-public class Url {
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
+@ToString(exclude = "urlChecks")
+public final class Url {
+
     private Long id;
     private String name;
-    private Timestamp createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Getter
+    private List<UrlCheck> urlChecks = new ArrayList<>();
 
     public Url(String name) {
         this.name = name;
+        this.createdAt = LocalDateTime.now();
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
+    public Url(String name, LocalDateTime createdAt) {
         this.name = name;
-    }
-
-    public Timestamp getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+        this.urlChecks = new ArrayList<>();
     }
+
+    public void addUrlCheck(UrlCheck check) {
+        urlChecks.add(check);
+        check.setUrl(this);
+    }
+
+
 }

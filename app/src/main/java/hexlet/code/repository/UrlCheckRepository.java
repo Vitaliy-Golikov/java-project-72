@@ -1,0 +1,114 @@
+package hexlet.code.repository;
+
+import hexlet.code.model.Url;
+import hexlet.code.model.UrlCheck;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+public class UrlCheckRepository extends BaseRepository {
+
+    public static void save(UrlCheck urlCheck) throws SQLException {
+        String sql = """
+                INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)""";
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            stmt.setLong(1, urlCheck.getUrl().getId());
+            stmt.setInt(2, urlCheck.getStatusCode());
+            stmt.setString(3, urlCheck.getH1());
+            stmt.setString(4, urlCheck.getTitle());
+            stmt.setString(5, urlCheck.getDescription());
+
+            var now = LocalDateTime.now();
+            stmt.setTimestamp(6, Timestamp.valueOf(now));
+
+            stmt.executeUpdate();
+
+            try (var generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    urlCheck.setId(generatedKeys.getLong(1));
+                    urlCheck.setCreatedAt(now);
+                } else {
+                    throw new SQLException("DB have not returned an id after saving an entity");
+                }
+            }
+        }
+    }
+
+    public static List<UrlCheck> findByUrlId(Long urlId) throws SQLException {
+        String sql = """
+            SELECT * FROM url_checks
+            WHERE url_id = ?
+            ORDER BY ID DESC
+            """;
+
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, urlId);
+            var resultSet = stmt.executeQuery();
+
+            var urlChecks = new ArrayList<UrlCheck>();
+            while (resultSet.next()) {
+                urlChecks.add(mapRowToUrlCheck(resultSet, urlId));
+            }
+            return urlChecks;
+        }
+    }
+
+    public static Optional<UrlCheck> findLatestByUrlId(Long urlId) throws SQLException {
+        String sql = """
+            SELECT * FROM url_checks
+            WHERE url_id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+            """;
+
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, urlId);
+            ResultSet resultSet = stmt.executeQuery();
+
+            if (resultSet.next()) {
+                return Optional.of(mapRowToUrlCheck(resultSet, urlId));
+            }
+            return Optional.empty();
+        }
+    }
+
+    private static UrlCheck mapRowToUrlCheck(ResultSet rs, Long urlId) throws SQLException {
+        Url url = new Url("");
+        url.setId(urlId);
+
+        UrlCheck check = new UrlCheck(
+                rs.getInt("status_code"),
+                url
+        );
+
+        check.setId(rs.getLong("id"));
+        check.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+        check.setTitle(rs.getString("title"));
+        check.setH1(rs.getString("h1"));
+        check.setDescription(rs.getString("description"));
+
+        return check;
+    }
+
+    public static void removeAll() throws SQLException {
+        String sql = "DELETE FROM url_checks";
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.prepareStatement(sql)) {
+            stmt.executeUpdate();
+        }
+    }
+
+}
