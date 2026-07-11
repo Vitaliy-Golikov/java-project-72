@@ -72,8 +72,8 @@ CREATE TABLE url_checks (
     title VARCHAR(255),
     description TEXT,
     created_at TIMESTAMP NOT NULL
-);```
-
+);
+```
 ## Функциональность
 
 ### Основные возможности
@@ -109,31 +109,31 @@ CREATE TABLE url_checks (
 
 ```bash
 export JDBC_DATABASE_URL=jdbc:postgresql://localhost:5432/page_analyzer
-export PORT=8080```
-
+export PORT=8080
+```
 ## Сборка и запуск
 
 ### Локальный запуск
 
 ```bash
 cd app
-./gradlew run```
-
+./gradlew run
+```
 ### Сборка JAR
 
 ```cd app
-./gradlew build```
-
+./gradlew build
+```
 ### Docker
 
 ```docker build -t page-analyzer .
-docker run -p 7070:7070 page-analyzer```
-
+docker run -p 7070:7070 page-analyzer
+```
 ### Тестирование
 
 ```cd app
-./gradlew test```
-
+./gradlew test
+```
 ## Паттерны и практики
 
 - **MVC архитектура** — разделение на контроллеры, модели и представления
