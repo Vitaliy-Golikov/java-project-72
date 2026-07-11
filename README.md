@@ -75,7 +75,7 @@ CREATE TABLE url_checks (
 );
 ```
 
-app/
+```app/
 ├── src/main/java/hexlet/code/
 │ ├── App.java # Точка входа
 │ ├── controller/ # Контроллеры
@@ -107,7 +107,7 @@ app/
 └── src/test/
 └── java/hexlet/code/
 └── AppTest.java
-
+```
 ## Функциональность
 
 ### Основные возможности
