@@ -72,8 +72,43 @@ CREATE TABLE url_checks (
     title VARCHAR(255),
     description TEXT,
     created_at TIMESTAMP NOT NULL
-);```
-
+);
+```
+## Структура проекта
+```text
+app/
+├── src/main/java/hexlet/code/
+│ ├── App.java # Точка входа
+│ ├── controller/ # Контроллеры
+│ │ ├── RootController.java
+│ │ └── UrlsController.java
+│ ├── dto/ # DTO
+│ │ ├── BasePage.java
+│ │ ├── RootPage.java
+│ │ └── urls/
+│ ├── model/ # Модели
+│ │ ├── Url.java
+│ │ └── UrlCheck.java
+│ ├── repository/ # Репозитории
+│ │ ├── BaseRepository.java
+│ │ ├── UrlRepository.java
+│ │ └── UrlCheckRepository.java
+│ └── util/ # Утилиты
+│ ├── DateUtils.java
+│ └── NamedRoutes.java
+├── src/main/resources/
+│ ├── schema.sql
+│ └── templates/
+│ ├── layout/
+│ │ └── page.jte
+│ ├── urls/
+│ │ ├── index.jte
+│ │ └── show.jte
+│ └── index.jte
+└── src/test/
+└── java/hexlet/code/
+└── AppTest.java
+```
 ## Функциональность
 
 ### Основные возможности
@@ -109,31 +144,31 @@ CREATE TABLE url_checks (
 
 ```bash
 export JDBC_DATABASE_URL=jdbc:postgresql://localhost:5432/page_analyzer
-export PORT=8080```
-
+export PORT=8080
+```
 ## Сборка и запуск
 
 ### Локальный запуск
 
 ```bash
 cd app
-./gradlew run```
-
+./gradlew run
+```
 ### Сборка JAR
 
 ```cd app
-./gradlew build```
-
+./gradlew build
+```
 ### Docker
 
 ```docker build -t page-analyzer .
-docker run -p 7070:7070 page-analyzer```
-
+docker run -p 7070:7070 page-analyzer
+```
 ### Тестирование
 
 ```cd app
-./gradlew test```
-
+./gradlew test
+```
 ## Паттерны и практики
 
 - **MVC архитектура** — разделение на контроллеры, модели и представления
