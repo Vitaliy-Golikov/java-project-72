@@ -35,10 +35,13 @@ public class UrlsController {
 
     public static void index(Context ctx) throws SQLException {
         List<UrlListItem> items = UrlRepository.getAllWithLastChecks();
+        System.out.println("=== UrlsController.index() ===");
+        System.out.println("Items count: " + items.size());
+        for (var item : items) {
+            System.out.println("Item: " + item.getName() + ", status: " + (item.getLastCheck() != null ? item.getLastCheck().getStatusCode() : "null"));
+        }
         var page = new UrlsPage(items);
-
         consumeFlashToPage(ctx, page);
-
         ctx.render("urls/index.jte", model("page", page));
     }
 
