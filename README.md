@@ -74,6 +74,40 @@ CREATE TABLE url_checks (
     created_at TIMESTAMP NOT NULL
 );
 ```
+
+app/
+├── src/main/java/hexlet/code/
+│ ├── App.java # Точка входа
+│ ├── controller/ # Контроллеры
+│ │ ├── RootController.java
+│ │ └── UrlsController.java
+│ ├── dto/ # DTO
+│ │ ├── BasePage.java
+│ │ ├── RootPage.java
+│ │ └── urls/
+│ ├── model/ # Модели
+│ │ ├── Url.java
+│ │ └── UrlCheck.java
+│ ├── repository/ # Репозитории
+│ │ ├── BaseRepository.java
+│ │ ├── UrlRepository.java
+│ │ └── UrlCheckRepository.java
+│ └── util/ # Утилиты
+│ ├── DateUtils.java
+│ └── NamedRoutes.java
+├── src/main/resources/
+│ ├── schema.sql
+│ └── templates/
+│ ├── layout/
+│ │ └── page.jte
+│ ├── urls/
+│ │ ├── index.jte
+│ │ └── show.jte
+│ └── index.jte
+└── src/test/
+└── java/hexlet/code/
+└── AppTest.java
+
 ## Функциональность
 
 ### Основные возможности
