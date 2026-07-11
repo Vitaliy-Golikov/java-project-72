@@ -2,7 +2,6 @@
 [![Actions Status](https://github.com/Vitaliy-Golikov/java-project-72/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/Vitaliy-Golikov/java-project-72/actions)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=Vitaliy-Golikov_java-project-72&metric=bugs)](https://sonarcloud.io/summary/new_code?id=Vitaliy-Golikov_java-project-72)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=Vitaliy-Golikov_java-project-72&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=Vitaliy-Golikov_java-project-72)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Vitaliy-Golikov_java-project-72&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=Vitaliy-Golikov_java-project-72)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=Vitaliy-Golikov_java-project-72&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=Vitaliy-Golikov_java-project-72)
 
 ## Демо
