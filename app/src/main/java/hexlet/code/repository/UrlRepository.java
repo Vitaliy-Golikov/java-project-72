@@ -2,6 +2,7 @@ package hexlet.code.repository;
 
 import hexlet.code.dto.urls.UrlListItem;
 import hexlet.code.model.Url;
+import hexlet.code.model.UrlCheck;  // ← ДОБАВЛЕН ИМПОРТ
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

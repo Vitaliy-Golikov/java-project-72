@@ -19,9 +19,11 @@ public class UrlCheck {
     private Url url;
     private LocalDateTime createdAt;
 
+    public UrlCheck() {
+    }
+
     public UrlCheck(int statusCode, Url url) {
         this.statusCode = statusCode;
         this.url = url;
     }
-
 }
