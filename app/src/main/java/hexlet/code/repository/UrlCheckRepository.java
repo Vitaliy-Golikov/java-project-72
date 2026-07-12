@@ -14,20 +14,12 @@ import java.util.Optional;
 
 public class UrlCheckRepository extends BaseRepository {
 
-    private static final int MAX_LENGTH = 250;
-
     public static void save(UrlCheck urlCheck) throws SQLException {
         String sql = """
                 INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)""";
         try (var conn = dataSource.getConnection();
              var stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-            System.out.println("Saving check for URL ID: " + urlCheck.getUrl().getId());
-            System.out.println("Status code: " + urlCheck.getStatusCode());
-            System.out.println("Title: " + urlCheck.getTitle());
-            System.out.println("H1: " + urlCheck.getH1());
-            System.out.println("Description: " + urlCheck.getDescription());
 
             stmt.setLong(1, urlCheck.getUrl().getId());
             stmt.setInt(2, urlCheck.getStatusCode());
@@ -38,14 +30,12 @@ public class UrlCheckRepository extends BaseRepository {
             var now = LocalDateTime.now();
             stmt.setTimestamp(6, Timestamp.valueOf(now));
 
-            int affectedRows = stmt.executeUpdate();
-            System.out.println("Affected rows: " + affectedRows);
+            stmt.executeUpdate();
 
             try (var generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     urlCheck.setId(generatedKeys.getLong(1));
                     urlCheck.setCreatedAt(now);
-                    System.out.println("Generated ID: " + urlCheck.getId());
                 } else {
                     throw new SQLException("DB have not returned an id after saving an entity");
                 }
@@ -70,7 +60,6 @@ public class UrlCheckRepository extends BaseRepository {
             while (resultSet.next()) {
                 urlChecks.add(mapRowToUrlCheck(resultSet, urlId));
             }
-            System.out.println("Found " + urlChecks.size() + " checks for URL ID: " + urlId);
             return urlChecks;
         }
     }
@@ -97,24 +86,17 @@ public class UrlCheckRepository extends BaseRepository {
     }
 
     private static UrlCheck mapRowToUrlCheck(ResultSet rs, Long urlId) throws SQLException {
-        Url url = new Url("");
+        Url url = new Url();
         url.setId(urlId);
 
-        UrlCheck check = new UrlCheck(
-                rs.getInt("status_code"),
-                url
-        );
-
+        UrlCheck check = new UrlCheck();
         check.setId(rs.getLong("id"));
+        check.setUrl(url);
+        check.setStatusCode(rs.getInt("status_code"));
         check.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         check.setTitle(rs.getString("title"));
         check.setH1(rs.getString("h1"));
         check.setDescription(rs.getString("description"));
-
-        System.out.println("Mapped check: ID=" + check.getId() +
-                ", Status=" + check.getStatusCode() +
-                ", Title=" + check.getTitle() +
-                ", H1=" + check.getH1());
 
         return check;
     }
@@ -125,23 +107,5 @@ public class UrlCheckRepository extends BaseRepository {
              var stmt = conn.prepareStatement(sql)) {
             stmt.executeUpdate();
         }
-    }
-
-    private static String truncate(String value) {
-        if (value == null) {
-            return null;
-        }
-        System.out.println("=== truncate() ===");
-        System.out.println("Input length: " + value.length());
-        System.out.println("Input: " + value);
-        if (value.length() <= MAX_LENGTH) {
-            System.out.println("No truncation needed");
-            return value;
-        }
-        String result = value.substring(0, MAX_LENGTH - 3) + "...";
-        System.out.println("Result length: " + result.length());
-        System.out.println("Result: " + result);
-        System.out.println("Result ends with ...: " + result.endsWith("..."));
-        return result;
     }
 }

@@ -21,11 +21,6 @@ public final class UrlListItem {
     }
 
     public static UrlListItem fromUrl(Url url, UrlCheck lastCheck) {
-        System.out.println("=== UrlListItem.fromUrl() ===");
-        System.out.println("URL ID: " + url.getId());
-        System.out.println("URL Name: " + url.getName());
-        System.out.println("LastCheck status: " + (lastCheck != null ? lastCheck.getStatusCode() : "null"));
-
         return new UrlListItem(
                 url.getId(),
                 url.getName(),

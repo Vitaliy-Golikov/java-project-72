@@ -2,7 +2,6 @@ package hexlet.code.repository;
 
 import hexlet.code.dto.urls.UrlListItem;
 import hexlet.code.model.Url;
-import hexlet.code.model.UrlCheck;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,23 +36,6 @@ public class UrlRepository extends BaseRepository {
         }
     }
 
-    public static List<Url> getEntities() throws SQLException {
-        var sql = "SELECT * FROM urls ORDER by id DESC";  // ← ИЗМЕНЕНО: ASC → DESC
-        try (var conn = dataSource.getConnection();
-             var stmt = conn.prepareStatement(sql)) {
-            var resultSet = stmt.executeQuery();
-            var result = new ArrayList<Url>();
-
-            while (resultSet.next()) {
-                var url = mapRowToUrl(resultSet);
-                url.setUrlChecks(UrlCheckRepository.findByUrlId(url.getId()));
-                result.add(url);
-            }
-
-            return result;
-        }
-    }
-
     public static Optional<Url> find(Long id) throws SQLException {
         var sql = "SELECT * FROM urls WHERE id = ?";
         try (var conn = dataSource.getConnection();
@@ -62,11 +44,8 @@ public class UrlRepository extends BaseRepository {
             var resultSet = stmt.executeQuery();
 
             if (resultSet.next()) {
-                var url = mapRowToUrl(resultSet);
-                url.setUrlChecks(UrlCheckRepository.findByUrlId(id));
-                return Optional.of(url);
+                return Optional.of(mapRowToUrl(resultSet));
             }
-
             return Optional.empty();
         }
     }
@@ -78,19 +57,22 @@ public class UrlRepository extends BaseRepository {
             stmt.setString(1, name);
             var resultSet = stmt.executeQuery();
             if (resultSet.next()) {
-                var url = mapRowToUrl(resultSet);
-                url.setUrlChecks(UrlCheckRepository.findByUrlId(url.getId()));
-                return Optional.of(url);
+                return Optional.of(mapRowToUrl(resultSet));
             }
             return Optional.empty();
         }
     }
 
-    public static void removeAll() throws SQLException {
-        String sql = "DELETE FROM urls";
+    public static List<Url> findAll() throws SQLException {
+        var sql = "SELECT * FROM urls ORDER BY id DESC";
         try (var conn = dataSource.getConnection();
-             var stmt = conn.prepareStatement(sql)) {
-            stmt.executeUpdate();
+             var stmt = conn.prepareStatement(sql);
+             var resultSet = stmt.executeQuery()) {
+            var result = new ArrayList<Url>();
+            while (resultSet.next()) {
+                result.add(mapRowToUrl(resultSet));
+            }
+            return result;
         }
     }
 
@@ -101,31 +83,57 @@ public class UrlRepository extends BaseRepository {
 
         var url = new Url(name, createdAt);
         url.setId(id);
-        url.setUrlChecks(new ArrayList<>());
         return url;
     }
 
     public static List<UrlListItem> getAllWithLastChecks() throws SQLException {
-        System.out.println("=== getAllWithLastChecks() ===");
-        List<Url> urls = getEntities();
-        System.out.println("Total URLs: " + urls.size());
+        String sql = """
+            SELECT u.*,
+                   uc.id as check_id,
+                   uc.status_code,
+                   uc.title,
+                   uc.h1,
+                   uc.description,
+                   uc.created_at as check_created_at
+            FROM urls u
+            LEFT JOIN url_checks uc ON u.id = uc.url_id
+            WHERE uc.id IS NULL
+               OR uc.id = (
+                   SELECT MAX(id)
+                   FROM url_checks
+                   WHERE url_id = u.id
+               )
+            ORDER BY u.id DESC
+            """;
 
-        List<UrlListItem> items = urls.stream()
-                .map(url -> {
-                    UrlCheck lastCheck = null;
-                    try {
-                        lastCheck = UrlCheckRepository.findLatestByUrlId(url.getId())
-                                .orElse(null);
-                        System.out.println("URL: " + url.getName() + " (ID: " + url.getId()
-                                + ") -> LastCheck status: " + (lastCheck != null ? lastCheck.getStatusCode() : "null"));
-                    } catch (SQLException e) {
-                        System.err.println("Error getting last check for URL " + url.getId() + ": " + e.getMessage());
-                    }
-                    return UrlListItem.fromUrl(url, lastCheck);
-                })
-                .toList();
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.prepareStatement(sql);
+             var resultSet = stmt.executeQuery()) {
+            var items = new ArrayList<UrlListItem>();
+            while (resultSet.next()) {
+                Url url = mapRowToUrl(resultSet);
+                UrlCheck lastCheck = null;
+                Long checkId = resultSet.getObject("check_id", Long.class);
+                if (checkId != null) {
+                    lastCheck = new UrlCheck();
+                    lastCheck.setId(checkId);
+                    lastCheck.setStatusCode(resultSet.getInt("status_code"));
+                    lastCheck.setTitle(resultSet.getString("title"));
+                    lastCheck.setH1(resultSet.getString("h1"));
+                    lastCheck.setDescription(resultSet.getString("description"));
+                    lastCheck.setCreatedAt(resultSet.getTimestamp("check_created_at").toLocalDateTime());
+                }
+                items.add(UrlListItem.fromUrl(url, lastCheck));
+            }
+            return items;
+        }
+    }
 
-        System.out.println("Total items created: " + items.size());
-        return items;
+    public static void removeAll() throws SQLException {
+        String sql = "DELETE FROM urls";
+        try (var conn = dataSource.getConnection();
+             var stmt = conn.prepareStatement(sql)) {
+            stmt.executeUpdate();
+        }
     }
 }

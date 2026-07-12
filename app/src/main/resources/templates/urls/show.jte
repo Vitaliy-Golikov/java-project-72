@@ -11,7 +11,7 @@ content = @`
     <div class="container-lg mt-5">
         <h1>Сайт: ${page.getUrl().getName()}</h1>
 
-        <table class="table table-bordered table-hover mt-3">
+        <table class="table table-bordered table-hover mt-3" data-test="url">
             <tbody>
             <tr>
                 <td>ID</td>
@@ -32,24 +32,6 @@ content = @`
         <form method="post" action="${NamedRoutes.urlPathCheck(page.getUrl().getId())}">
             <button type="submit" class="btn btn-primary">Запустить проверку</button>
         </form>
-
-        <!-- ВРЕМЕННОЕ ЛОГИРОВАНИЕ -->
-        @if(page.getChecks() != null)
-            <p>Checks count: ${page.getChecks().size()}</p>
-            @for(var urlCheck : page.getChecks())
-                <p>Check ID: ${urlCheck.getId()}, Status: ${urlCheck.getStatusCode()}</p>
-                <p>Title: "${urlCheck.getTitle()}"</p>
-                <p>Title length: ${urlCheck.getTitle() != null ? urlCheck.getTitle().length() : 0}</p>
-                <p>Title ends with ...: ${urlCheck.getTitle() != null && urlCheck.getTitle().endsWith("...")}</p>
-                <p>H1: "${urlCheck.getH1()}"</p>
-                <p>H1 length: ${urlCheck.getH1() != null ? urlCheck.getH1().length() : 0}</p>
-                <p>H1 ends with ...: ${urlCheck.getH1() != null && urlCheck.getH1().endsWith("...")}</p>
-                <p>Description: "${urlCheck.getDescription()}"</p>
-                <p>Description length: ${urlCheck.getDescription() != null ? urlCheck.getDescription().length() : 0}</p>
-                <p>Description ends with ...: ${urlCheck.getDescription() != null && urlCheck.getDescription().endsWith("...")}</p>
-            @endfor
-        @endif
-        <!-- КОНЕЦ ВРЕМЕННОГО ЛОГИРОВАНИЯ -->
 
         <table class="table table-bordered table-hover mt-3" data-test="checks">
             <thead>

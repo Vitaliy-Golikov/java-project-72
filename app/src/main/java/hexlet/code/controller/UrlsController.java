@@ -15,9 +15,8 @@ import io.javalin.http.HttpStatus;
 import io.javalin.http.NotFoundResponse;
 
 import kong.unirest.core.Unirest;
-import kong.unirest.core.HttpResponse;
-
 import kong.unirest.core.UnirestException;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -31,10 +30,10 @@ import java.util.List;
 
 import static io.javalin.rendering.template.TemplateUtil.model;
 
+@Slf4j
 public class UrlsController {
 
     private static final int MAX_LENGTH = 200;
-    private static final int TRUNCATE_LENGTH = MAX_LENGTH - 3;
 
     private static String truncate(String value) {
         if (value == null) {
@@ -43,16 +42,11 @@ public class UrlsController {
         if (value.length() <= MAX_LENGTH) {
             return value;
         }
-        return value.substring(0, TRUNCATE_LENGTH) + "...";
+        return value.substring(0, MAX_LENGTH - 3) + "...";
     }
 
     public static void index(Context ctx) throws SQLException {
         List<UrlListItem> items = UrlRepository.getAllWithLastChecks();
-        System.out.println("=== UrlsController.index() ===");
-        System.out.println("Items count: " + items.size());
-        for (var item : items) {
-            System.out.println("Item: " + item.getName() + ", status: " + (item.getLastCheck() != null ? item.getLastCheck().getStatusCode() : "null"));
-        }
         var page = new UrlsPage(items);
         consumeFlashToPage(ctx, page);
         ctx.render("urls/index.jte", model("page", page));
@@ -60,16 +54,9 @@ public class UrlsController {
 
     public static void show(Context ctx) throws SQLException {
         var id = ctx.pathParamAsClass("id", Long.class).get();
-        System.out.println("Show URL ID: " + id);
-
         var url = UrlRepository.find(id)
                 .orElseThrow(() -> new NotFoundResponse("Url not found"));
-
-        System.out.println("URL found: " + url.getName() + " with ID: " + url.getId());
-
         var checks = UrlCheckRepository.findByUrlId(id);
-        System.out.println("Loaded " + checks.size() + " checks for URL ID: " + id);
-
         var page = new UrlPage(url, checks);
         consumeFlashToPage(ctx, page);
         ctx.render("urls/show.jte", model("page", page));
@@ -77,10 +64,9 @@ public class UrlsController {
 
     public static void create(Context ctx) throws SQLException {
         var name = ctx.formParam("url");
-        System.out.println("Creating URL: " + name);
 
         if (name == null || name.trim().isEmpty()) {
-            ctx.status(422); // 422 Unprocessable Entity
+            ctx.status(HttpStatus.UNPROCESSABLE_CONTENT);
             ctx.sessionAttribute("flashType", "danger");
             ctx.sessionAttribute("flash", "Некорректный URL");
             RootController.index(ctx);
@@ -90,9 +76,8 @@ public class UrlsController {
         String normalizedUrl;
         try {
             normalizedUrl = normalizeUrl(name);
-            System.out.println("Normalized URL: " + normalizedUrl);
         } catch (MalformedURLException | URISyntaxException e) {
-            ctx.status(422); // 422 Unprocessable Entity
+            ctx.status(HttpStatus.UNPROCESSABLE_CONTENT);
             ctx.sessionAttribute("flashType", "danger");
             ctx.sessionAttribute("flash", "Некорректный URL");
             RootController.index(ctx);
@@ -101,7 +86,6 @@ public class UrlsController {
 
         var existingUrl = UrlRepository.findByName(normalizedUrl);
         if (existingUrl.isPresent()) {
-            System.out.println("URL already exists: " + existingUrl.get().getId());
             ctx.sessionAttribute("flashType", "success");
             ctx.sessionAttribute("flash", "Страница уже существует");
             ctx.redirect(NamedRoutes.urlPath(String.valueOf(existingUrl.get().getId())));
@@ -110,7 +94,6 @@ public class UrlsController {
 
         var url = new Url(normalizedUrl);
         UrlRepository.save(url);
-        System.out.println("Saved URL with ID: " + url.getId());
 
         var savedUrl = UrlRepository.findByName(normalizedUrl).get();
 
@@ -122,21 +105,12 @@ public class UrlsController {
 
     public static void check(Context ctx) throws SQLException {
         var id = ctx.pathParamAsClass("id", Long.class).get();
-        System.out.println("Checking URL ID: " + id);
-
         var url = UrlRepository.find(id)
                 .orElseThrow(() -> new NotFoundResponse("Url not found"));
 
-        System.out.println("Checking URL: " + url.getName());
-
         try {
             UrlCheck checkedUrl = checkUrl(url);
-            System.out.println("Check result: Status=" + checkedUrl.getStatusCode() +
-                    ", Title=" + checkedUrl.getTitle() +
-                    ", H1=" + checkedUrl.getH1() +
-                    ", Description=" + checkedUrl.getDescription());
 
-            // Если статус ответа >= 400, считаем проверку неудачной
             if (checkedUrl.getStatusCode() >= 400) {
                 ctx.sessionAttribute("flashType", "danger");
                 ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
@@ -145,21 +119,13 @@ public class UrlsController {
             }
 
             UrlCheckRepository.save(checkedUrl);
-            System.out.println("Check saved successfully with ID: " + checkedUrl.getId());
-
-            var savedChecks = UrlCheckRepository.findByUrlId(id);
-            System.out.println("After save, found " + savedChecks.size() + " checks for URL ID: " + id);
 
             ctx.sessionAttribute("flashType", "success");
             ctx.sessionAttribute("flash", "Страница успешно проверена");
         } catch (UnirestException e) {
-            System.err.println("UnirestException: " + e.getMessage());
+            log.error("Error checking URL: {}", url.getName(), e);
             ctx.sessionAttribute("flashType", "danger");
-            ctx.sessionAttribute("flash", "Некорректный адрес");
-        } catch (RuntimeException e) {
-            System.err.println("RuntimeException: " + e.getMessage());
-            ctx.sessionAttribute("flashType", "warning");
-            ctx.sessionAttribute("flash", "Страница доступна, но не удалось извлечь метаданные");
+            ctx.sessionAttribute("flash", "Произошла ошибка при проверке");
         }
 
         ctx.redirect(NamedRoutes.urlPath(String.valueOf(id)));
@@ -168,65 +134,28 @@ public class UrlsController {
     private static UrlCheck checkUrl(Url url) throws UnirestException {
         UrlCheck urlCheck = new UrlCheck(500, url);
         var urlString = url.getName();
-        System.out.println("Fetching URL: " + urlString);
 
-        try {
-            HttpResponse<String> response = Unirest.get(urlString)
-                    .header("User-Agent", "Mozilla/5.0")
-                    .asString();
+        var response = Unirest.get(urlString)
+                .header("User-Agent", "Mozilla/5.0")
+                .asString();
 
-            urlCheck.setStatusCode(response.getStatus());
-            System.out.println("Response status: " + response.getStatus());
+        urlCheck.setStatusCode(response.getStatus());
 
-            String body = response.getBody();
-            if (body == null || body.trim().isEmpty()) {
-                System.out.println("Body is empty for URL: " + urlString);
-                return urlCheck;
-            }
-
-            Document doc = Jsoup.parse(body, urlString);
-
-            String title = doc.title();
-            String trimmedTitle = title.trim();
-            String truncatedTitle = truncate(trimmedTitle);
-            System.out.println("Raw title length: " + trimmedTitle.length());
-            System.out.println("Truncated title: " + truncatedTitle);
-            System.out.println("Truncated title length: " + (truncatedTitle != null ? truncatedTitle.length() : 0));
-            System.out.println("Truncated title ends with ...: " + (truncatedTitle != null && truncatedTitle.endsWith("...")));
-            urlCheck.setTitle(!trimmedTitle.isEmpty() ? truncatedTitle : null);
-
-            Element h1Element = doc.selectFirst("h1");
-            if (h1Element != null) {
-                String h1Text = h1Element.text();
-                String truncatedH1 = truncate(h1Text);
-                System.out.println("Raw h1 length: " + h1Text.length());
-                System.out.println("Truncated h1: " + truncatedH1);
-                System.out.println("Truncated h1 length: " + (truncatedH1 != null ? truncatedH1.length() : 0));
-                System.out.println("Truncated h1 ends with ...: " + (truncatedH1 != null && truncatedH1.endsWith("...")));
-                urlCheck.setH1(truncatedH1);
-            } else {
-                System.out.println("H1 element not found");
-                urlCheck.setH1(null);
-            }
-
-            Element descriptionMeta = doc.selectFirst("meta[name=description], meta[property=og:description]");
-            if (descriptionMeta != null) {
-                String desc = descriptionMeta.attr("content");
-                String truncatedDesc = truncate(desc);
-                System.out.println("Raw description length: " + desc.length());
-                System.out.println("Truncated description: " + truncatedDesc);
-                System.out.println("Truncated description length: " + (truncatedDesc != null ? truncatedDesc.length() : 0));
-                System.out.println("Truncated description ends with ...: " + (truncatedDesc != null && truncatedDesc.endsWith("...")));
-                urlCheck.setDescription(truncatedDesc);
-            } else {
-                System.out.println("Description meta not found");
-                urlCheck.setDescription(null);
-            }
-
-        } catch (Exception e) {
-            System.err.println("Error parsing URL: " + e.getMessage());
-            e.printStackTrace();
+        String body = response.getBody();
+        if (body == null || body.trim().isEmpty()) {
+            return urlCheck;
         }
+
+        Document doc = Jsoup.parse(body, urlString);
+
+        String title = doc.title();
+        urlCheck.setTitle(!title.trim().isEmpty() ? truncate(title.trim()) : null);
+
+        Element h1Element = doc.selectFirst("h1");
+        urlCheck.setH1(h1Element != null ? truncate(h1Element.text()) : null);
+
+        Element descriptionMeta = doc.selectFirst("meta[name=description], meta[property=og:description]");
+        urlCheck.setDescription(descriptionMeta != null ? truncate(descriptionMeta.attr("content")) : null);
 
         return urlCheck;
     }
@@ -258,7 +187,6 @@ public class UrlsController {
             normalized.append(":").append(port);
         }
 
-        System.out.println("Normalized from '" + input + "' to '" + normalized.toString() + "'");
         return normalized.toString();
     }
 }
